@@ -1,0 +1,19 @@
+{
+  "appId": "com.secondthought.spending",
+  "appName": "Second Thought: Spending",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "disable",
+      "style": "DEFAULT",
+      "hidden": false
+    },
+    "LocalNotifications": {
+      "iconColor": "#25483b",
+      "presentationOptions": ["sound", "banner", "list"]
+    }
+  }
+}

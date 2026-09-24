@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Second Thought: Spending</string>
+    <string name="title_activity_main">Second Thought: Spending</string>
+    <string name="package_name">com.secondthought.spending</string>
+    <string name="custom_url_scheme">com.secondthought.spending</string>
+</resources>

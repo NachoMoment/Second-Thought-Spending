@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Second Thought logo</title>
+  <desc id="desc">The words 2nd Thought inside a sage green circle on a warm cream background.</desc>
+  <defs>
+    <linearGradient id="medallion" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fffdf8"/>
+      <stop offset="1" stop-color="#f7f4ec"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="28" stdDeviation="30" flood-color="#17352c" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+
+  <circle cx="600" cy="600" r="388" fill="url(#medallion)" stroke="#91aa9d" stroke-width="18" filter="url(#shadow)"/>
+  <circle cx="600" cy="600" r="356" fill="none" stroke="#d5ddd6" stroke-width="3"/>
+
+  <g text-anchor="middle" font-family="Avenir Next, Avenir, Inter, Segoe UI, Arial, sans-serif" font-weight="800">
+    <text x="600" y="544" fill="#c77758" font-size="112" letter-spacing="6">2nd</text>
+    <text x="600" y="679" fill="#17352c" font-size="154" letter-spacing="-7">Thought</text>
+  </g>
+
+  <path d="M445 763 C520 801 680 801 755 763" fill="none" stroke="#c77758" stroke-width="14" stroke-linecap="round" opacity="0.9"/>
+</svg>
