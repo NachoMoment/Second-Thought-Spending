@@ -109,7 +109,7 @@ function connectedDevices(adbPath) {
 }
 
 function diagnostics({ requireDevice }) {
-  heading('Checking the trail ahead');
+  heading('Checking your Android setup');
   if (!commandWorks(executable('node'), ['--version'])) fail('Node.js was not found. Install Node.js 22 or newer.');
   const nodeMajor = Number(process.versions.node.split('.')[0]);
   if (nodeMajor < 22) fail(`Node.js ${process.versions.node} is too old. Install Node.js 22 or newer.`);
@@ -169,7 +169,7 @@ function diagnostics({ requireDevice }) {
 }
 
 function buildApk(javaEnv) {
-  heading('Packing one portable pause button');
+  heading('Building Second Thought: Spending');
   run(isWindows ? 'npm.cmd' : 'npm', ['run', 'android:sync'], { env: javaEnv });
 
   const gradleWrapper = path.join(androidRoot, isWindows ? 'gradlew.bat' : 'gradlew');
@@ -180,7 +180,7 @@ function buildApk(javaEnv) {
   if (!existsSync(sourceApk)) fail('Gradle finished, but the APK could not be found.');
 
   const artifactDirectory = path.join(projectRoot, 'artifacts');
-  const friendlyApk = path.join(artifactDirectory, 'Second-Thought-community-debug.apk');
+  const friendlyApk = path.join(artifactDirectory, 'Second-Thought-Spending-debug.apk');
   mkdirSync(artifactDirectory, { recursive: true });
   copyFileSync(sourceApk, friendlyApk);
   console.log(`  ✓ APK ready: ${path.relative(projectRoot, friendlyApk)}`);
@@ -199,11 +199,11 @@ if (mode === 'doctor') {
 
 const apkPath = buildApk(tools.javaEnv);
 if (mode === 'apk') {
-  console.log('\n✨ Build complete. The APK is ready to share with another developer or install manually.');
+  console.log('\n✓ Debug build complete. Install this APK on your phone to test it.');
   process.exit(0);
 }
 
-heading('Placing Second Thought on the connected phone');
+heading('Installing Second Thought: Spending on your phone');
 const installResult = spawnSync(tools.adbPath, ['install', '-r', apkPath], {
   encoding: 'utf8',
   shell: false,
@@ -212,13 +212,14 @@ if (installResult.status !== 0) {
   const output = `${installResult.stdout ?? ''}\n${installResult.stderr ?? ''}`;
   if (output.includes('INSTALL_FAILED_UPDATE_INCOMPATIBLE')) {
     fail('Android found an older copy signed by a different developer key.', [
-      'Uninstalling would erase that copy’s local Second Thought data.',
-      'Back up anything you need, uninstall manually, and rerun this command.',
+      'Uninstalling would erase that copy’s local purchase information.',
+      'Export any data you want to keep in the app’s Settings before uninstalling.',
+      'Then uninstall the older build manually and rerun this command.',
     ]);
   }
   console.error(output.trim());
   fail('Android could not install the APK.');
 }
 console.log('  ✓ Installed without clearing existing app data');
-run(tools.adbPath, ['shell', 'monkey', '-p', 'com.secondthought.app', '-c', 'android.intent.category.LAUNCHER', '1']);
-console.log('\n✨ Second Thought should now be open on your phone. Take a breath—you made a mobile app.');
+run(tools.adbPath, ['shell', 'monkey', '-p', 'com.secondthought.spending', '-c', 'android.intent.category.LAUNCHER', '1']);
+console.log('\n✓ Second Thought: Spending should now be open on your phone.');

@@ -29,10 +29,12 @@ public class SpendingGuardPlugin extends Plugin {
   static final String PREFS = "spending_guard";
   @PluginMethod public void configure(PluginCall call) {
     JSArray packages = call.getArray("packages", new JSArray());
-    boolean enabled = Boolean.TRUE.equals(call.getBoolean("protection", false));
+    boolean consent = Boolean.TRUE.equals(call.getBoolean("consent", false));
+    boolean enabled = Boolean.TRUE.equals(call.getBoolean("protection", false)) && consent;
     int minutes = call.getInt("durationMinutes", 10);
-    getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-      .putString("packages", packages.toString()).putBoolean("protection", enabled)
+    android.content.SharedPreferences.Editor editor = getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit();
+    if (!enabled) editor.clear();
+    editor.putString("packages", packages.toString()).putBoolean("protection", enabled).putBoolean("consent", consent)
       .putInt("duration", Math.max(1, Math.min(1440, minutes)))
       .putString("goal", call.getString("goal", "Your goal"))
       .putString("amount", call.getString("protectedAmount", "$0.00")).apply();
@@ -47,6 +49,7 @@ public class SpendingGuardPlugin extends Plugin {
     JSObject result = new JSObject(); result.put("enabled", on); call.resolve(result);
   }
   @PluginMethod public void openAccessibilitySettings(PluginCall call) {
+    if (!getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("consent", false)) { call.reject("App protection consent required"); return; }
     Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     getContext().startActivity(intent); call.resolve();

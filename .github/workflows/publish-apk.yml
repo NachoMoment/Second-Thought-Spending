@@ -1,0 +1,74 @@
+name: Build signed APK
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  android-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - run: cmp docs/privacy-policy.html public/privacy-policy.html
+      - name: Check release version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          app_version=$(sed -n 's/^[[:space:]]*versionName "\([^"]*\)"/\1/p' android/app/build.gradle)
+          test "${GITHUB_REF_NAME}" = "v${app_version}"
+      - run: npm ci
+      - run: npm run android:sync
+      - name: Decode the private signing key
+        env:
+          ST_SPENDING_KEYSTORE_B64: ${{ secrets.ST_SPENDING_KEYSTORE_B64 }}
+        shell: bash
+        run: |
+          test -n "$ST_SPENDING_KEYSTORE_B64"
+          keystore_path="$RUNNER_TEMP/spending-release.jks"
+          printf '%s' "$ST_SPENDING_KEYSTORE_B64" | base64 --decode > "$keystore_path"
+          test -s "$keystore_path"
+          echo "ST_SPENDING_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
+      - name: Build release APK
+        env:
+          ST_SPENDING_STORE_PASSWORD: ${{ secrets.ST_SPENDING_STORE_PASSWORD }}
+          ST_SPENDING_KEY_ALIAS: ${{ secrets.ST_SPENDING_KEY_ALIAS }}
+          ST_SPENDING_KEY_PASSWORD: ${{ secrets.ST_SPENDING_KEY_PASSWORD }}
+        run: |
+          test -n "$ST_SPENDING_STORE_PASSWORD" && test -n "$ST_SPENDING_KEY_ALIAS" && test -n "$ST_SPENDING_KEY_PASSWORD"
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleRelease --no-daemon
+      - name: Verify APK signature
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose android/app/build/outputs/apk/release/app-release.apk
+      - name: Prepare download and checksum
+        shell: bash
+        run: |
+          mkdir -p release
+          cp android/app/build/outputs/apk/release/app-release.apk release/Second-Thought-Spending.apk
+          cd release
+          sha256sum Second-Thought-Spending.apk > Second-Thought-Spending.apk.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed-apk-for-testing
+          path: |
+            release/Second-Thought-Spending.apk
+            release/Second-Thought-Spending.apk.sha256
+          if-no-files-found: error
+      - name: Publish the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release/Second-Thought-Spending.apk release/Second-Thought-Spending.apk.sha256 --verify-tag --title "Second Thought: Spending $GITHUB_REF_NAME" --generate-notes
